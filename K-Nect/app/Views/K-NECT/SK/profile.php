@@ -78,6 +78,17 @@
         .panzoom-container:hover {
             border-color: #d1d5db;
         }
+        
+        /* Filter Tabs Styling */
+        .filter-tab.active {
+            background: white;
+            color: #1f2937;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        .filter-tab:not(.active):hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
     </style>
         <!-- Main Content -->
         <main class="flex-1 p-8">
@@ -110,6 +121,45 @@
                         </button>
                     </div>
                 </div>
+                
+                <!-- Filter Tabs and Zone Selector -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <!-- Status Filter Tabs -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-700 mr-2">Status:</span>
+                                <div class="flex bg-gray-100 rounded-lg p-1">
+                                    <button id="filterAll" class="filter-tab active px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 bg-white text-gray-900 shadow-sm">
+                                        All <span id="countAll" class="ml-1 bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs">0</span>
+                                    </button>
+                                    <button id="filterPending" class="filter-tab px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 text-gray-500 hover:text-gray-700">
+                                        Pending <span id="countPending" class="ml-1 bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-xs">0</span>
+                                    </button>
+                                    <button id="filterVerified" class="filter-tab px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 text-gray-500 hover:text-gray-700">
+                                        Verified <span id="countVerified" class="ml-1 bg-green-200 text-green-800 px-2 py-0.5 rounded-full text-xs">0</span>
+                                    </button>
+                                    <button id="filterRejected" class="filter-tab px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 text-gray-500 hover:text-gray-700">
+                                        Rejected <span id="countRejected" class="ml-1 bg-red-200 text-red-800 px-2 py-0.5 rounded-full text-xs">0</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Zone Filter -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-700">Zone:</span>
+                                <select id="zoneFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="">All Zones</option>
+                                    <!-- Zone options will be populated dynamically -->
+                                </select>
+                                <button id="clearFilters" class="ml-2 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div class="p-6">
                         <div class="overflow-x-auto">
@@ -119,6 +169,7 @@
                                         <th class="px-4 py-2 border-b">No.</th>
                                         <th class="px-4 py-2 border-b">User ID</th>
                                         <th class="px-4 py-2 border-b">Barangay</th>
+                                        <th class="px-4 py-2 border-b">Zone/Purok</th>
                                         <th class="px-4 py-2 border-b text-left">Full Name</th>
                                         <th class="px-4 py-2 border-b">Age</th>
                                         <th class="px-4 py-2 border-b">Birthday</th>
@@ -130,8 +181,25 @@
                                 <tbody>
                                     <?php
                                     use App\Libraries\BarangayHelper;
+                                    use App\Libraries\ZoneHelper;
                                     ?>
                                     <?php if (!empty($user_list)): ?>
+                                        <?php 
+                                        // Debug: Check if zone_purok data exists
+                                        $hasZoneData = false;
+                                        foreach ($user_list as $user) {
+                                            if (isset($user['zone_purok']) && !empty($user['zone_purok'])) {
+                                                $hasZoneData = true;
+                                                break;
+                                            }
+                                        }
+                                        ?>
+                                        <!-- Debug: Show zone data status -->
+                                        <script>
+                                            console.log('Zone data available:', <?= $hasZoneData ? 'true' : 'false' ?>);
+                                            console.log('Sample user data:', <?= json_encode(isset($user_list[0]) ? $user_list[0] : []) ?>);
+                                        </script>
+                                        
                                         <?php foreach ($user_list as $user): ?>
                                             <tr class="hover:bg-gray-50">
                                                 <td class="px-4 py-2 border-b text-center"><?= esc($user['id']) ?></td>
@@ -144,6 +212,9 @@
                                                 </td>
                                                 <td class="px-4 py-2 border-b text-center">
                                                     <?= esc(BarangayHelper::getBarangayName($user['barangay'])) ?>
+                                                </td>
+                                                <td class="px-4 py-2 border-b text-center">
+                                                    <?= isset($user['zone_purok']) && !empty($user['zone_purok']) ? esc(ZoneHelper::getZoneName($user['zone_purok'])) : '-' ?>
                                                 </td>
                                                 <td class="px-4 py-2 border-b text-left">
                                                     <?php
@@ -370,6 +441,9 @@
     // Barangay mapping from PHP
     const barangayMap = <?= json_encode(BarangayHelper::getBarangayMap()) ?>;
     
+    // Zone mapping from PHP
+    const zoneMap = <?= json_encode(ZoneHelper::getZoneMap()) ?>;
+    
     let currentUserId = null;
     let currentBirthCertFile = null;
     let currentUploadIdFile = null;
@@ -580,6 +654,10 @@
                         2: '3-4 times',
                         3: '5 or more times'
                     };
+                    var zoneMap = {
+                        1: 'Zone 1', 2: 'Zone 2', 3: 'Zone 3', 4: 'Zone 4', 5: 'Zone 5',
+                        6: 'Zone 6', 7: 'Zone 7', 8: 'Zone 8', 9: 'Zone 9', 10: 'Zone 10'
+                    };
                     var noWhyMap = {
                         1: "There was no KK assembly meeting",
                         2: "Not interested to attend"
@@ -631,9 +709,9 @@
                     $('#modalUserStatus').text(statusText)
                         .removeClass()
                         .addClass('inline-flex px-2 py-1 rounded-full text-sm font-medium ' + statusClass);
-                    $('#modalUserZone').text(u.zone_purok || '');
+                    $('#modalUserZone').text(zoneMap[u.zone_purok] || u.zone_purok || '');
                     var addressParts = [];
-                    if (u.zone_purok) addressParts.push(u.zone_purok);
+                    if (u.zone_purok) addressParts.push(zoneMap[u.zone_purok] || u.zone_purok);
                     if (barangayStr) addressParts.push(barangayStr);
                     addressParts.push('Iriga City');
                     addressParts.push('Camarines Sur');
@@ -766,39 +844,80 @@
         
         // Initialize Panzoom for images after DOM is updated
         setTimeout(() => {
+            console.log('Panzoom availability check:', {
+                Panzoom: typeof Panzoom,
+                Controls: typeof Controls,
+                windowPanzoom: window.Panzoom,
+                windowControls: window.Controls
+            });
+            
             if (birthCertFile && ['jpg','jpeg','png','gif','webp'].includes(birthCertFile.split('.').pop().toLowerCase())) {
-                const certPanzoom = Panzoom(document.getElementById('certPreviewWrapper'), {
-                    Controls: {
-                        display: [
-                            'zoomIn',
-                            'zoomOut',
-                            'toggle1to1',
-                            'rotateCCW',
-                            'rotateCW',
-                            'flipX',
-                            'flipY',
-                            'reset'
-                        ]
+                const certContainer = document.getElementById('certPreviewWrapper');
+                if (certContainer) {
+                    console.log('Initializing cert Panzoom for:', certContainer);
+                    try {
+                        // Try different ways to access Panzoom and Controls
+                        let PanzoomClass = Panzoom || window.Panzoom;
+                        let ControlsClass = Controls || window.Controls;
+                        
+                        if (PanzoomClass && ControlsClass) {
+                            const certPanzoom = new PanzoomClass(certContainer, {
+                                Controls: {
+                                    display: [
+                                        'zoomIn',
+                                        'zoomOut',
+                                        'toggle1to1',
+                                        'toggleFull',
+                                        'rotateCCW',
+                                        'rotateCW',
+                                        'flipX',
+                                        'flipY',
+                                        'reset'
+                                    ]
+                                }
+                            }, { Controls: ControlsClass });
+                            console.log('Cert Panzoom initialized successfully');
+                        } else {
+                            console.warn('Panzoom or Controls not available');
+                        }
+                    } catch (error) {
+                        console.error('Error initializing cert Panzoom:', error);
                     }
-                }, { Controls });
-                certPanzoom.init();
+                }
             }
             if (uploadIdFile && ['jpg','jpeg','png','gif','webp'].includes(uploadIdFile.split('.').pop().toLowerCase())) {
-                const idPanzoom = Panzoom(document.getElementById('idPreviewWrapper'), {
-                    Controls: {
-                        display: [
-                            'zoomIn',
-                            'zoomOut',
-                            'toggle1to1',
-                            'rotateCCW',
-                            'rotateCW',
-                            'flipX',
-                            'flipY',
-                            'reset'
-                        ]
+                const idContainer = document.getElementById('idPreviewWrapper');
+                if (idContainer) {
+                    console.log('Initializing ID Panzoom for:', idContainer);
+                    try {
+                        // Try different ways to access Panzoom and Controls
+                        let PanzoomClass = Panzoom || window.Panzoom;
+                        let ControlsClass = Controls || window.Controls;
+                        
+                        if (PanzoomClass && ControlsClass) {
+                            const idPanzoom = new PanzoomClass(idContainer, {
+                                Controls: {
+                                    display: [
+                                        'zoomIn',
+                                        'zoomOut',
+                                        'toggle1to1',
+                                        'toggleFull',
+                                        'rotateCCW',
+                                        'rotateCW',
+                                        'flipX',
+                                        'flipY',
+                                        'reset'
+                                    ]
+                                }
+                            }, { Controls: ControlsClass });
+                            console.log('ID Panzoom initialized successfully');
+                        } else {
+                            console.warn('Panzoom or Controls not available');
+                        }
+                    } catch (error) {
+                        console.error('Error initializing ID Panzoom:', error);
                     }
-                }, { Controls });
-                idPanzoom.init();
+                }
             }
         }, 100);
     }
@@ -1085,8 +1204,127 @@
                 $('#kkTable_info').addClass('mt-2 text-gray-600');
                 $('#kkTable_paginate').addClass('mt-4');
                 $('#kkTable_paginate span a').addClass('px-2 py-1 border rounded mx-1');
+                
+                // Populate zone filter options and update counts
+                populateZoneFilter();
+                updateStatusCounts();
             }
         });
+        
+        // Function to update status counts
+        function updateStatusCounts() {
+            let allCount = 0;
+            let pendingCount = 0;
+            let verifiedCount = 0;
+            let rejectedCount = 0;
+            
+            $('#kkTable tbody tr').each(function() {
+                const statusCell = $(this).find('td').eq(8); // Status is in column 8
+                if (statusCell.length) {
+                    const statusText = statusCell.find('span').text().trim();
+                    allCount++;
+                    
+                    switch(statusText) {
+                        case 'Pending':
+                            pendingCount++;
+                            break;
+                        case 'Accepted':
+                            verifiedCount++;
+                            break;
+                        case 'Rejected':
+                            rejectedCount++;
+                            break;
+                    }
+                }
+            });
+            
+            $('#countAll').text(allCount);
+            $('#countPending').text(pendingCount);
+            $('#countVerified').text(verifiedCount);
+            $('#countRejected').text(rejectedCount);
+        }
+        
+        // Function to populate zone filter dropdown
+        function populateZoneFilter() {
+            const zones = new Set();
+            $('#kkTable tbody tr').each(function() {
+                const zoneCell = $(this).find('td').eq(3); // Zone/Purok is now in the 4th column (0-indexed)
+                if (zoneCell.length) {
+                    const zoneText = zoneCell.text().trim();
+                    if (zoneText && zoneText !== '-') {
+                        zones.add(zoneText);
+                    }
+                }
+            });
+            
+            console.log('Found zones:', Array.from(zones)); // Debug log
+            
+            const zoneFilter = $('#zoneFilter');
+            Array.from(zones).sort().forEach(zone => {
+                zoneFilter.append(`<option value="${zone}">${zone}</option>`);
+            });
+        }
+        
+        // Status filter tabs
+        $('.filter-tab').on('click', function() {
+            // Remove active class from all tabs
+            $('.filter-tab').removeClass('active').removeClass('bg-white text-gray-900 shadow-sm').addClass('text-gray-500 hover:text-gray-700');
+            
+            // Add active class to clicked tab
+            $(this).addClass('active').removeClass('text-gray-500 hover:text-gray-700').addClass('bg-white text-gray-900 shadow-sm');
+            
+            const filterId = $(this).attr('id');
+            let filterValue = '';
+            
+            switch(filterId) {
+                case 'filterPending':
+                    filterValue = 'Pending';
+                    break;
+                case 'filterVerified':
+                    filterValue = 'Accepted'; // Assuming "Verified" means "Accepted" status
+                    break;
+                case 'filterRejected':
+                    filterValue = 'Rejected';
+                    break;
+                case 'filterAll':
+                default:
+                    filterValue = '';
+                    break;
+            }
+            
+            // Apply status filter (status is now in column 8 - 0-indexed)
+            table.column(8).search(filterValue).draw();
+            
+            // Update counts after filtering
+            setTimeout(updateStatusCounts, 100);
+        });
+        
+        // Zone filter dropdown
+        $('#zoneFilter').on('change', function() {
+            const zoneValue = $(this).val();
+            // Apply zone filter (zone/purok is in column 3 - 0-indexed)
+            table.column(3).search(zoneValue).draw();
+            
+            // Update counts after filtering
+            setTimeout(updateStatusCounts, 100);
+        });
+        
+        // Clear filters button
+        $('#clearFilters').on('click', function() {
+            // Reset status filter to "All"
+            $('.filter-tab').removeClass('active').removeClass('bg-white text-gray-900 shadow-sm').addClass('text-gray-500 hover:text-gray-700');
+            $('#filterAll').addClass('active').removeClass('text-gray-500 hover:text-gray-700').addClass('bg-white text-gray-900 shadow-sm');
+            
+            // Reset zone filter
+            $('#zoneFilter').val('');
+            
+            // Clear all column searches
+            table.columns().search('').draw();
+            
+            // Update counts
+            setTimeout(updateStatusCounts, 100);
+        });
+        
         function getTableData() {
             const data = [];
             const headers = [];
@@ -1188,6 +1426,10 @@
                         2: '3-4 times',
                         3: '5 or more times'
                     };
+                    var zoneMap = {
+                        1: 'Zone 1', 2: 'Zone 2', 3: 'Zone 3', 4: 'Zone 4', 5: 'Zone 5',
+                        6: 'Zone 6', 7: 'Zone 7', 8: 'Zone 8', 9: 'Zone 9', 10: 'Zone 10'
+                    };
                     var noWhyMap = {
                         1: "There was no KK assembly meeting",
                         2: "Not interested to attend"
@@ -1239,9 +1481,9 @@
                     $('#modalUserStatus').text(statusText)
                         .removeClass()
                         .addClass('inline-flex px-2 py-1 rounded-full text-sm font-medium ' + statusClass);
-                    $('#modalUserZone').text(u.zone_purok || '');
+                    $('#modalUserZone').text(zoneMap[u.zone_purok] || u.zone_purok || '');
                     var addressParts = [];
-                    if (u.zone_purok) addressParts.push(u.zone_purok);
+                    if (u.zone_purok) addressParts.push(zoneMap[u.zone_purok] || u.zone_purok);
                     if (barangayStr) addressParts.push(barangayStr);
                     addressParts.push('Iriga City');
                     addressParts.push('Camarines Sur');

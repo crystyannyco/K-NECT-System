@@ -40,7 +40,7 @@ class SKController extends BaseController
         $userExtInfoModel = new UserExtInfoModel();
 
         $query = $userModel
-            ->select('user.id, user.user_id, user.status, user.position, address.barangay, user.last_name, user.first_name, user.middle_name, user.birthdate, user.sex, user_ext_info.birth_certificate, user_ext_info.upload_id')
+            ->select('user.id, user.user_id, user.status, user.position, address.barangay, address.zone_purok, user.last_name, user.first_name, user.middle_name, user.birthdate, user.sex, user_ext_info.birth_certificate, user_ext_info.upload_id')
             ->join('address', 'address.user_id = user.id', 'left')
             ->join('user_ext_info', 'user_ext_info.user_id = user.id', 'left');
         
@@ -64,7 +64,8 @@ class SKController extends BaseController
         return 
             view('K-NECT/SK/Template/Header') .
             view('K-NECT/SK/Template/Sidebar') .
-            view('K-NECT/SK/profile', $data);
+            view('K-NECT/SK/profile', $data) .
+            view('K-NECT/SK/Template/Footer');
     }
 
 

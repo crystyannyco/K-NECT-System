@@ -17,7 +17,7 @@
                     <div>
                         <h3 class="text-2xl font-bold text-gray-900">User Lists</h3>
                         <?php if (isset($barangay_name) && $barangay_name): ?>
-                        <p class="text-sm text-gray-600 mt-1">Showing constituents from <span class="font-semibold text-purple-600"><?= esc($barangay_name) ?></span></p>
+                        <p class="text-sm text-gray-600 mt-1">Barangay <span class="font-semibold text-purple-600"><?= esc($barangay_name) ?></span></p>
                         <?php endif; ?>
                     </div>
                     <div class="flex flex-row gap-4 items-center">
