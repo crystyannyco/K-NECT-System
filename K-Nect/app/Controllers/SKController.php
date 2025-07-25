@@ -57,9 +57,43 @@ class SKController extends BaseController
         }
         unset($u);
 
+        // Get status counts from database
+        $statusCounts = [
+            'all' => 0,
+            'pending' => 0,
+            'accepted' => 0,
+            'rejected' => 0
+        ];
+        
+        // Create separate queries for each count to avoid stacking conditions
+        $allQuery = $userModel->join('address', 'address.user_id = user.id', 'left');
+        if ($skBarangay) {
+            $allQuery->where('address.barangay', $skBarangay);
+        }
+        $statusCounts['all'] = $allQuery->countAllResults();
+        
+        $pendingQuery = $userModel->join('address', 'address.user_id = user.id', 'left');
+        if ($skBarangay) {
+            $pendingQuery->where('address.barangay', $skBarangay);
+        }
+        $statusCounts['pending'] = $pendingQuery->where('user.status', 1)->countAllResults();
+        
+        $acceptedQuery = $userModel->join('address', 'address.user_id = user.id', 'left');
+        if ($skBarangay) {
+            $acceptedQuery->where('address.barangay', $skBarangay);
+        }
+        $statusCounts['accepted'] = $acceptedQuery->where('user.status', 2)->countAllResults();
+        
+        $rejectedQuery = $userModel->join('address', 'address.user_id = user.id', 'left');
+        if ($skBarangay) {
+            $rejectedQuery->where('address.barangay', $skBarangay);
+        }
+        $statusCounts['rejected'] = $rejectedQuery->where('user.status', 3)->countAllResults();
+
         $data['user_list'] = $users;
         $data['sk_barangay'] = $skBarangay;
         $data['barangay_name'] = $barangayName;
+        $data['status_counts'] = $statusCounts;
 
         return 
             view('K-NECT/SK/Template/Header') .

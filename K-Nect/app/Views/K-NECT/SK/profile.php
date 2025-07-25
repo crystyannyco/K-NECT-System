@@ -1,5 +1,4 @@
-
-    <style>
+<style>
         table.dataTable thead th {
             @apply bg-gray-50 text-gray-500 text-sm uppercase tracking-wide;
         }
@@ -89,6 +88,28 @@
         .filter-tab:not(.active):hover {
             background: rgba(255, 255, 255, 0.5);
         }
+
+        /* Status Tabs Styling */
+        .status-tab {
+            cursor: pointer;
+            border: 1px solid transparent;
+            min-width: 100px;
+            text-align: center;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        .status-tab:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-tab.active {
+            background: #3b82f6 !important;
+            color: white !important;
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: translateY(-1px);
+        }
     </style>
         <!-- Main Content -->
         <main class="flex-1 p-8">
@@ -97,7 +118,7 @@
                     <div>
                         <h3 class="text-2xl font-bold text-gray-900">List of KK</h3>
                         <?php if (isset($barangay_name) && $barangay_name): ?>
-                        <p class="text-sm text-gray-600 mt-1">Showing constituents from <span class="font-semibold text-purple-600"><?= esc($barangay_name) ?></span></p>
+                        <p class="text-sm text-gray-600 mt-1">Barangay <span class="font-semibold text-purple-600"><?= esc($barangay_name) ?></span></p>
                         <?php endif; ?>
                     </div>
                     <div class="flex flex-wrap gap-3">
@@ -124,40 +145,36 @@
                 
                 <!-- Filter Tabs and Zone Selector -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
-                    <div class="p-4 border-b border-gray-200">
-                        <div class="flex flex-wrap items-center justify-between gap-4">
-                            <!-- Status Filter Tabs -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium text-gray-700 mr-2">Status:</span>
-                                <div class="flex bg-gray-100 rounded-lg p-1">
-                                    <button id="filterAll" class="filter-tab active px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 bg-white text-gray-900 shadow-sm">
-                                        All <span id="countAll" class="ml-1 bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-xs">0</span>
-                                    </button>
-                                    <button id="filterPending" class="filter-tab px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 text-gray-500 hover:text-gray-700">
-                                        Pending <span id="countPending" class="ml-1 bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-xs">0</span>
-                                    </button>
-                                    <button id="filterVerified" class="filter-tab px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 text-gray-500 hover:text-gray-700">
-                                        Verified <span id="countVerified" class="ml-1 bg-green-200 text-green-800 px-2 py-0.5 rounded-full text-xs">0</span>
-                                    </button>
-                                    <button id="filterRejected" class="filter-tab px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 text-gray-500 hover:text-gray-700">
-                                        Rejected <span id="countRejected" class="ml-1 bg-red-200 text-red-800 px-2 py-0.5 rounded-full text-xs">0</span>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Zone Filter -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium text-gray-700">Zone:</span>
-                                <select id="zoneFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">All Zones</option>
-                                    <!-- Zone options will be populated dynamically -->
-                                </select>
-                                <button id="clearFilters" class="ml-2 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
-                                    Clear Filters
-                                </button>
-                            </div>
-                        </div>
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <!-- Status Tabs -->
+                    <div class="flex gap-3 mb-2">
+                        <button class="status-tab bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:opacity-80" data-status="all">
+                            All (<span id="countAll"><?php echo isset($status_counts['all']) ? $status_counts['all'] : 0; ?></span>)
+                        </button>
+                        <button class="status-tab bg-yellow-100 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:opacity-80" data-status="Pending">
+                            Pending (<span id="countPending"><?php echo isset($status_counts['pending']) ? $status_counts['pending'] : 0; ?></span>)
+                        </button>
+                        <button class="status-tab bg-green-100 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:opacity-80" data-status="Accepted">
+                            Verified (<span id="countVerified"><?php echo isset($status_counts['accepted']) ? $status_counts['accepted'] : 0; ?></span>)
+                        </button>
+                        <button class="status-tab bg-red-100 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:opacity-80" data-status="Rejected">
+                            Rejected (<span id="countRejected"><?php echo isset($status_counts['rejected']) ? $status_counts['rejected'] : 0; ?></span>)
+                        </button>
                     </div>
+                    <!-- Zone Filter -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-700">Zone:</span>
+                        <select id="zoneFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">All Zones</option>
+                            <!-- Zone options will be populated dynamically -->
+                        </select>
+                        <button id="clearFilters" class="ml-2 px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
                 </div>
                 
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -214,7 +231,7 @@
                                                     <?= esc(BarangayHelper::getBarangayName($user['barangay'])) ?>
                                                 </td>
                                                 <td class="px-4 py-2 border-b text-center">
-                                                    <?= isset($user['zone_purok']) && !empty($user['zone_purok']) ? esc(ZoneHelper::getZoneName($user['zone_purok'])) : '-' ?>
+                                                    <?= isset($user['zone_purok']) && !empty($user['zone_purok']) ? esc($user['zone_purok']) : '-' ?>
                                                 </td>
                                                 <td class="px-4 py-2 border-b text-left">
                                                     <?php
@@ -278,6 +295,112 @@
                                     <?php endif; ?>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modals (reuse your existing modal HTML/JS here) -->
+            <!-- Modal for document preview -->
+            <div id="previewModal" class="fixed inset-0 z-[9998] hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl w-[90vw] max-h-[90vh] relative overflow-hidden flex flex-col">
+                    <!-- Modal Header -->
+                    <div class="w-full bg-white border-b border-gray-200 p-4 flex justify-between items-center z-20">
+                        <h3 class="text-lg font-semibold text-gray-900">User Profile</h3>
+                        <button onclick="closePreviewModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Content Wrapper (takes remaining vertical space) -->
+                    <div class="flex-1 flex overflow-hidden"> <!-- New wrapper -->
+                        <!-- Left: User Info -->
+                        <div class="w-[40%] bg-gray-50 p-6 flex flex-col items-center justify-start overflow-y-auto">
+                            <div class="w-40 h-40 bg-gray-300 mb-4 overflow-hidden shadow-md border-4 border-white flex items-center justify-center relative" style="min-width:220px; min-height:220px; max-width:220px; max-height:220px;">
+                                <img id="modalUserPhoto" src="" alt="User Profile" class="w-full h-full object-cover" style="aspect-ratio:1/1; min-width:220px; min-height:220px; max-width:220px; max-height:220px; border-radius:0;">
+                            </div>
+                            <h4 id="modalUserFullName" class="text-lg font-semibold text-gray-900 text-center mb-1"></h4>
+                            <p id="modalUserBarangay" class="text-sm text-gray-500 text-center mb-4"></p>
+                            <!-- User Info Sections -->
+                            <div class="w-full space-y-6">
+                                <!-- Basic Information -->
+                                <div>
+                                    <h5 class="text-sm font-medium text-gray-900 mb-3 pb-1 border-b border-gray-200">Basic Information</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Full Name</label><p id="modalUserName" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">KK ID</label><p id="modalUserId" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Sex</label><p id="modalUserSex" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Email</label><p id="modalUserEmail" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Birthday</label><p id="modalUserBirthday" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Age</label><p id="modalUserAge" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Civil Status</label><p id="modalUserCivilStatus" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Status</label><span id="modalUserStatus" class="inline-flex px-2 py-1 rounded-full text-sm font-medium"></span></div>
+                                    </div>
+                                </div>
+                                <!-- Address Information -->
+                                <div>
+                                    <h5 class="text-sm font-medium text-gray-900 mb-3 pb-1 border-b border-gray-200">Address Information</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Barangay</label><p id="modalUserBarangayDetail" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Zone</label><p id="modalUserZone" class="text-sm text-gray-900"></p></div>
+                                        <div class="col-span-2"><label class="block text-sm font-medium text-gray-500 mb-1">Complete Address</label><p id="modalUserAddress" class="text-sm text-gray-900"></p></div>
+                                    </div>
+                                </div>
+                                <!-- Youth Classification -->
+                                <div>
+                                    <h5 class="text-sm font-medium text-gray-900 mb-3 pb-1 border-b border-gray-200">Youth Classification</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Youth Classification</label><p id="modalUserYouthClassification" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Work Status</label><p id="modalUserWorkStatus" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Youth Age Group</label><p id="modalUserYouthAgeGroup" class="text-sm text-gray-900"></p></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Educational Background</label><p id="modalUserEducation" class="text-sm text-gray-900"></p></div>
+                                    </div>
+                                </div>
+                                <!-- Voting Information -->
+                                <div>
+                                    <h5 class="text-sm font-medium text-gray-900 mb-3 pb-1 border-b border-gray-200">Voting Information</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Registered SK Voter</label><span id="modalUserSKVoter" class="inline-flex px-2 py-1 rounded-full text-sm font-medium"></span></div>
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Voted Last SK Election</label><span id="modalUserVotedSK" class="inline-flex px-2 py-1 rounded-full text-sm font-medium"></span></div>
+                                        <div class="col-span-2"><label class="block text-sm font-medium text-gray-500 mb-1">Registered National Voter</label><span id="modalUserNationalVoter" class="inline-flex px-2 py-1 rounded-full text-sm font-medium"></span></div>
+                                    </div>
+                                </div>
+                                <!-- Assembly Attendance -->
+                                <div>
+                                    <h5 class="text-sm font-medium text-gray-900 mb-3 pb-1 border-b border-gray-200">KK Assembly Attendance</h5>
+                                    <div class="space-y-3">
+                                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Have you attended a KK Assembly?</label><span id="modalUserAttendedAssembly" class="inline-flex px-2 py-1 rounded-full text-sm font-medium"></span></div>
+                                        <div id="assemblyTimesContainer"><label class="block text-sm font-medium text-gray-500 mb-1">How many times?</label><p id="modalUserAssemblyTimes" class="text-sm text-gray-900"></p></div>
+                                        <div id="assemblyReasonContainer" class="hidden"><label class="block text-sm font-medium text-gray-500 mb-1">If No, Why?</label><p id="modalUserAssemblyReason" class="text-sm text-gray-900"></p></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Action Buttons (Accept/Reject) -->
+                            <div id="actionButtonsContainer" class="mt-6 flex flex-col gap-3 pt-4 border-t w-full">
+                                <button id="acceptButton" onclick="acceptUser()" class="w-full py-3 px-4 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Accept
+                                </button>
+                                <button id="rejectButton" onclick="rejectUser()" class="w-full py-3 px-4 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Reject
+                                </button>
+                                <button id="reverifyButton" onclick="reVerifyUser()" class="w-full py-3 px-4 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-semibold transition-all duration-200 flex items-center justify-center gap-2" style="display: none;">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Re-verify
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Right: Document Preview -->
+                        <div class="w-[60%] p-6 flex flex-col gap-8 items-center justify-start relative overflow-y-auto bg-white border-l border-gray-200" id="modalDocPreview">
+                            <!-- Document preview will be injected here -->
                         </div>
                     </div>
                 </div>
@@ -709,7 +832,7 @@
                     $('#modalUserStatus').text(statusText)
                         .removeClass()
                         .addClass('inline-flex px-2 py-1 rounded-full text-sm font-medium ' + statusClass);
-                    $('#modalUserZone').text(zoneMap[u.zone_purok] || u.zone_purok || '');
+                    $('#modalUserZone').text(u.zone_purok || '');
                     var addressParts = [];
                     if (u.zone_purok) addressParts.push(zoneMap[u.zone_purok] || u.zone_purok);
                     if (barangayStr) addressParts.push(barangayStr);
@@ -1178,71 +1301,53 @@
         });
     }
 
-
-
-
-    // DataTables and download logic
-    $(document).ready(function () {
-        const table = $('#kkTable').DataTable({
-            fixedColumns: {
-                leftColumns: 0,
-                rightColumns: 1
-            },
-            scrollCollapse: true,
-            scrollY: '300px',
-            scrollX: true,
-            paging: true,
-            info: true,
-            language: {
-                search: "",
-                searchPlaceholder: "Search..."
-            },
-            initComplete: function () {
-                $('#kkTable_wrapper').addClass('text-sm text-gray-700');
-                $('#kkTable_length label').addClass('inline-flex items-center gap-2');
-                $('#kkTable_length select').addClass('border border-gray-300 rounded px-2 py-1');
-                $('#kkTable_info').addClass('mt-2 text-gray-600');
-                $('#kkTable_paginate').addClass('mt-4');
-                $('#kkTable_paginate span a').addClass('px-2 py-1 border rounded mx-1');
-                
-                // Populate zone filter options and update counts
-                populateZoneFilter();
-                updateStatusCounts();
-            }
-        });
-        
-        // Function to update status counts
-        function updateStatusCounts() {
-            let allCount = 0;
-            let pendingCount = 0;
-            let verifiedCount = 0;
-            let rejectedCount = 0;
-            
-            $('#kkTable tbody tr').each(function() {
-                const statusCell = $(this).find('td').eq(8); // Status is in column 8
-                if (statusCell.length) {
-                    const statusText = statusCell.find('span').text().trim();
-                    allCount++;
-                    
-                    switch(statusText) {
-                        case 'Pending':
-                            pendingCount++;
-                            break;
-                        case 'Accepted':
-                            verifiedCount++;
-                            break;
-                        case 'Rejected':
-                            rejectedCount++;
-                            break;
-                    }
+        // DataTables and download logic
+        $(document).ready(function () {
+            const table = $('#kkTable').DataTable({
+                fixedColumns: {
+                    leftColumns: 0,
+                    rightColumns: 1
+                },
+                scrollCollapse: true,
+                scrollY: '300px',
+                scrollX: true,
+                paging: true,
+                info: true,
+                language: {
+                    search: "",
+                    searchPlaceholder: "Search..."
+                },
+                initComplete: function () {
+                    $('#kkTable_wrapper').addClass('text-sm text-gray-700');
+                    $('#kkTable_length label').addClass('inline-flex items-center gap-2');
+                    $('#kkTable_length select').addClass('border border-gray-300 rounded px-2 py-1');
+                    $('#kkTable_info').addClass('mt-2 text-gray-600');
+                    $('#kkTable_paginate').addClass('mt-4');
+                    $('#kkTable_paginate span a').addClass('px-2 py-1 border rounded mx-1');
+                    // Populate zone filter options
+                    populateZoneFilter();
                 }
             });
+
+        // Status tab click handler
+        $(document).on('click', '.status-tab', function() {
+            // Remove active class from all tabs and restore their original colors
+            $('.status-tab').removeClass('active bg-blue-500 text-white');
+            $('.status-tab[data-status="all"]').removeClass('bg-blue-500 text-white').addClass('bg-gray-200');
+            $('.status-tab[data-status="Pending"]').removeClass('bg-blue-500 text-white').addClass('bg-yellow-100');
+            $('.status-tab[data-status="Accepted"]').removeClass('bg-blue-500 text-white').addClass('bg-green-100');
+            $('.status-tab[data-status="Rejected"]').removeClass('bg-blue-500 text-white').addClass('bg-red-100');
             
-            $('#countAll').text(allCount);
-            $('#countPending').text(pendingCount);
-            $('#countVerified').text(verifiedCount);
-            $('#countRejected').text(rejectedCount);
-        }
+            // Add active class to clicked tab
+            $(this).removeClass('bg-gray-200 bg-yellow-100 bg-green-100 bg-red-100').addClass('active bg-blue-500 text-white');
+            
+            const status = $(this).data('status');
+            if (status === 'all') {
+                table.column(8).search('').draw();
+            } else {
+                table.column(8).search(status).draw();
+            }
+        });
         
         // Function to populate zone filter dropdown
         function populateZoneFilter() {
@@ -1265,64 +1370,27 @@
             });
         }
         
-        // Status filter tabs
-        $('.filter-tab').on('click', function() {
-            // Remove active class from all tabs
-            $('.filter-tab').removeClass('active').removeClass('bg-white text-gray-900 shadow-sm').addClass('text-gray-500 hover:text-gray-700');
-            
-            // Add active class to clicked tab
-            $(this).addClass('active').removeClass('text-gray-500 hover:text-gray-700').addClass('bg-white text-gray-900 shadow-sm');
-            
-            const filterId = $(this).attr('id');
-            let filterValue = '';
-            
-            switch(filterId) {
-                case 'filterPending':
-                    filterValue = 'Pending';
-                    break;
-                case 'filterVerified':
-                    filterValue = 'Accepted'; // Assuming "Verified" means "Accepted" status
-                    break;
-                case 'filterRejected':
-                    filterValue = 'Rejected';
-                    break;
-                case 'filterAll':
-                default:
-                    filterValue = '';
-                    break;
-            }
-            
-            // Apply status filter (status is now in column 8 - 0-indexed)
-            table.column(8).search(filterValue).draw();
-            
-            // Update counts after filtering
-            setTimeout(updateStatusCounts, 100);
-        });
-        
         // Zone filter dropdown
         $('#zoneFilter').on('change', function() {
             const zoneValue = $(this).val();
             // Apply zone filter (zone/purok is in column 3 - 0-indexed)
             table.column(3).search(zoneValue).draw();
-            
-            // Update counts after filtering
-            setTimeout(updateStatusCounts, 100);
         });
         
         // Clear filters button
         $('#clearFilters').on('click', function() {
-            // Reset status filter to "All"
-            $('.filter-tab').removeClass('active').removeClass('bg-white text-gray-900 shadow-sm').addClass('text-gray-500 hover:text-gray-700');
-            $('#filterAll').addClass('active').removeClass('text-gray-500 hover:text-gray-700').addClass('bg-white text-gray-900 shadow-sm');
-            
             // Reset zone filter
             $('#zoneFilter').val('');
             
+            // Reset status tabs to their original colors
+            $('.status-tab').removeClass('active bg-blue-500 text-white');
+            $('.status-tab[data-status="all"]').removeClass('bg-blue-500 text-white').addClass('bg-gray-200');
+            $('.status-tab[data-status="Pending"]').removeClass('bg-blue-500 text-white').addClass('bg-yellow-100');
+            $('.status-tab[data-status="Accepted"]').removeClass('bg-blue-500 text-white').addClass('bg-green-100');
+            $('.status-tab[data-status="Rejected"]').removeClass('bg-blue-500 text-white').addClass('bg-red-100');
+            
             // Clear all column searches
             table.columns().search('').draw();
-            
-            // Update counts
-            setTimeout(updateStatusCounts, 100);
         });
         
         function getTableData() {
@@ -1481,7 +1549,7 @@
                     $('#modalUserStatus').text(statusText)
                         .removeClass()
                         .addClass('inline-flex px-2 py-1 rounded-full text-sm font-medium ' + statusClass);
-                    $('#modalUserZone').text(zoneMap[u.zone_purok] || u.zone_purok || '');
+                    $('#modalUserZone').text(u.zone_purok || '');
                     var addressParts = [];
                     if (u.zone_purok) addressParts.push(zoneMap[u.zone_purok] || u.zone_purok);
                     if (barangayStr) addressParts.push(barangayStr);
